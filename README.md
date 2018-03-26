@@ -10,7 +10,7 @@ Below is a list of known issues. Pull requests are welcome for any of these issu
 
 ## Getting started
 
-1. `npm install react-native-multipeer@latest --save`
+1. `npm install https://github.com/atvenu/react-native-multipeer --save`
 2. In XCode, in the project navigator, right click `Libraries` ➜ `Add Files to [your project's name]`
 3. Go to `node_modules` ➜ `react-native-multipeer` and add `RCTMultipeerConnectivity.xcodeproj`
 4. In XCode, in the project navigator, select your project. Add `libRCTMultipeerConnectivity.a` to your project's `Build Phases` ➜ `Link Binary With Libraries`
@@ -21,6 +21,7 @@ Below is a list of known issues. Pull requests are welcome for any of these issu
 
 All you need is to `require` the `react-native-multipeer` module and then you can start using the singleton instance.
 
+# OUT OF DATE
 ```javascript
 var React = require('react-native');
 var {
