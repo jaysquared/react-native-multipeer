@@ -5,8 +5,8 @@ Pod::Spec.new do |s|
 
   s.name           = "RNMultiPeer"
   s.version        = version
-  s.summary        = ""
-  s.homepage       = ""
+  s.summary        = "moo"
+  s.homepage       = "poo"
   s.license        = "MIT"
   s.author         = { "Joel Arvidsson" => "joel@oblador.se" }
   s.platform       = :ios, "7.0"
