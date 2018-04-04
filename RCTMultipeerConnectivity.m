@@ -77,9 +77,41 @@ RCT_EXPORT_METHOD(disconnect:(RCTResponseSenderBlock)callback) {
   self.connectedPeers = [NSMutableDictionary dictionary];
   self.invitationHandlers = [NSMutableDictionary dictionary];
   self.peerID = [[MCPeerID alloc] initWithDisplayName:[[NSUUID UUID] UUIDString]];
-  self.session = [[MCSession alloc] initWithPeer:self.peerID securityIdentity:nil encryptionPreference:MCEncryptionNone];
+  NSArray *certs =  [NSArray arrayWithObject:(id)self.getClientCertificate];
+  self.session = [[MCSession alloc] initWithPeer:self.peerID securityIdentity:certs encryptionPreference:MCEncryptionRequired];
   self.session.delegate = self;
+    
   return self;
+}
+
+- (SecIdentityRef)getClientCertificate
+{
+    SecIdentityRef identity = nil;
+//    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+//    NSString *documentsDirectoryPath = [paths objectAtIndex:0];
+//    NSString *myFilePath = [documentsDirectoryPath stringByAppendingPathComponent:@"aps.p12"];
+    NSString *myFilePath = [[NSBundle mainBundle] pathForResource:@"aps" ofType:@"p12"];
+    NSLog(@"myFilePath: %@", myFilePath);
+    NSData *PKCS12Data = [NSData dataWithContentsOfFile:myFilePath];
+    
+    CFDataRef inPKCS12Data = (__bridge CFDataRef)PKCS12Data;
+    CFStringRef password = CFSTR("p");
+    const void *keys[] = { kSecImportExportPassphrase };//kSecImportExportPassphrase };
+    const void *values[] = { password };
+    CFDictionaryRef options = CFDictionaryCreate(NULL, keys, values, 1, NULL, NULL);
+    CFArrayRef items = CFArrayCreate(NULL, 0, 0, NULL);
+    OSStatus securityError = SecPKCS12Import(inPKCS12Data, options, &items);
+    CFRelease(options);
+    CFRelease(password);
+    if (securityError == errSecSuccess) {
+        NSLog(@"Success opening p12 certificate. Items: %ld", CFArrayGetCount(items));
+        CFDictionaryRef identityDict = CFArrayGetValueAtIndex(items, 0);
+        identity = (SecIdentityRef)CFDictionaryGetValue(identityDict, kSecImportItemIdentity);
+    } else {
+        NSLog(@"Error opening Certificate.");
+    }
+
+    return identity;
 }
 
 - (void)sendData:(NSArray *)recipients data:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback {
@@ -168,9 +200,43 @@ RCT_EXPORT_METHOD(disconnect:(RCTResponseSenderBlock)callback) {
 
   }
 }
-
-- (void)session:(MCSession *)session didReceiveCertificate:(NSArray *)certificate fromPeer:(MCPeerID *)peerID certificateHandler:(void (^)(BOOL accept))certificateHandler {
-  certificateHandler(YES);
+- (void)session:(MCSession *)session didReceiveCertificate:(NSArray *)certificate fromPeer:     (MCPeerID *)peerID certificateHandler:(void (^)(BOOL accept))certificateHandler
+{
+    
+    SecCertificateRef myCert;
+    myCert = (__bridge SecCertificateRef)[certificate objectAtIndex:0];    // 1
+    
+    SecPolicyRef myPolicy = SecPolicyCreateBasicX509();         // 2
+//    SecPolicyRef myPolicy = SecPolicyCreateSSL(YES, CFSTR("www.atvenu.com"));
+    
+    SecCertificateRef certArray[1] = { myCert };
+    CFArrayRef myCerts = CFArrayCreate(
+                                       NULL, (void *)certArray,
+                                       1, NULL);
+    SecTrustRef myTrust;
+    OSStatus status = SecTrustCreateWithCertificates(
+                                                     myCerts,
+                                                     myPolicy,
+                                                     &myTrust);  // 3
+    NSArray* anchors = @[ (__bridge id)myCert ];
+    SecTrustSetAnchorCertificates(myTrust,(__bridge CFTypeRef)anchors);
+    
+    SecTrustResultType trustResult;
+    if (status == noErr) {
+        status = SecTrustEvaluate(myTrust, &trustResult);       // 4
+    }
+    
+    status = SecTrustGetTrustResult(myTrust, &trustResult);
+    
+    //...
+    if (trustResult == kSecTrustResultConfirm || trustResult == kSecTrustResultProceed || trustResult == kSecTrustResultUnspecified)                           // 5
+    {
+        certificateHandler(YES);
+    }
+    
+    // ...
+    if (myPolicy)
+        CFRelease(myPolicy);
 }
 
 // TODO: Waiting for module interop and/or streams over JS bridge
