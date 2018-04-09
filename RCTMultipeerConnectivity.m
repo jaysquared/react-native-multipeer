@@ -9,6 +9,7 @@
 RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(advertise:(NSString *)channel data:(NSDictionary *)data) {
+  self.peerID = [[MCPeerID alloc] initWithDisplayName:[[NSUUID UUID] UUIDString]];
   self.advertiser =
   [[MCNearbyServiceAdvertiser alloc] initWithPeer:self.peerID discoveryInfo:data serviceType:channel];
   self.advertiser.delegate = self;
@@ -17,7 +18,9 @@ RCT_EXPORT_METHOD(advertise:(NSString *)channel data:(NSDictionary *)data) {
 
 RCT_EXPORT_METHOD(stopAdvertising)
 {
+    self.advertiser.delegate = nil;
     [self.advertiser stopAdvertisingPeer];
+    self.advertiser = nil;
 }
 
 RCT_EXPORT_METHOD(browse:(NSString *)channel)
@@ -29,7 +32,9 @@ RCT_EXPORT_METHOD(browse:(NSString *)channel)
 
 RCT_EXPORT_METHOD(stopBrowsing)
 {
+    self.browser.delegate = nil;
     [self.browser stopBrowsingForPeers];
+    self.browser = nil;
 }
 
 RCT_EXPORT_METHOD(invite:(NSString *)peerUUID callback:(RCTResponseSenderBlock)callback) {
@@ -78,6 +83,7 @@ RCT_EXPORT_METHOD(disconnect:(RCTResponseSenderBlock)callback) {
   self.peers = [NSMutableDictionary dictionary];
   self.connectedPeers = [NSMutableDictionary dictionary];
   self.invitationHandlers = [NSMutableDictionary dictionary];
+  // TODO: Should we re-init peerID on each launch? Could avoid issues of the device 'discovering' it's former self(and going on to write a best selling novel about its journey and growth)
   self.peerID = [[MCPeerID alloc] initWithDisplayName:[[NSUUID UUID] UUIDString]];
   NSArray *certs =  [NSArray arrayWithObject:(id)self.getClientCertificate];
   self.session = [[MCSession alloc] initWithPeer:self.peerID securityIdentity:certs encryptionPreference:MCEncryptionRequired];
