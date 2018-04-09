@@ -9,7 +9,7 @@
 RCT_EXPORT_MODULE()
 
 RCT_EXPORT_METHOD(advertise:(NSString *)channel data:(NSDictionary *)data) {
-  self.peerID = [[MCPeerID alloc] initWithDisplayName:[[NSUUID UUID] UUIDString]];
+  //self.peerID = [[MCPeerID alloc] initWithDisplayName:[[NSUUID UUID] UUIDString]];
   self.advertiser =
   [[MCNearbyServiceAdvertiser alloc] initWithPeer:self.peerID discoveryInfo:data serviceType:channel];
   self.advertiser.delegate = self;
