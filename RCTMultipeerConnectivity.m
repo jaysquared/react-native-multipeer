@@ -37,6 +37,11 @@ RCT_EXPORT_METHOD(stopBrowsing)
     self.browser = nil;
 }
 
+RCT_EXPORT_METHOD(logSessionInfo)
+{
+    NSLog(@"Session Info:%@", self.session);
+}
+
 RCT_EXPORT_METHOD(invite:(NSString *)peerUUID callback:(RCTResponseSenderBlock)callback) {
   MCPeerID *peerID = [self.peers valueForKey:peerUUID];
   [self.browser invitePeer:peerID toSession:self.session withContext:nil timeout:30];

@@ -34,6 +34,7 @@ export default class MultipeerConnection extends EventEmitter {
                 this._peers[event.peer.id] &&
             this._peers[event.peer.id].emit('connected');
         this._connectedPeers[event.peer.id] = this._peers[event.peer.id];
+        console.log('peerConnected', event)
         this.emit('peerConnected', event);
     }).bind(this)
     );
@@ -150,6 +151,10 @@ export default class MultipeerConnection extends EventEmitter {
             callback = () => {};
         }
         RCTMultipeerConnectivity.disconnect(callback);
+    }
+
+    logSessionInfo() {
+        RCTMultipeerConnectivity.logSessionInfo();
     }
 
     //  createStreamForPeer(peerId, name, callback) {
