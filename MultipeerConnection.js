@@ -1,7 +1,7 @@
 import { DeviceEventEmitter, NativeModules } from 'react-native';
 import { EventEmitter } from 'events';
 import Peer from './Peer';
-let RCTMultipeerConnectivity = NativeModules.MultipeerConnectivity;
+const RCTMultipeerConnectivity = NativeModules.MultipeerConnectivity;
 
 export default class MultipeerConnection extends EventEmitter {
     constructor() {
@@ -105,32 +105,25 @@ export default class MultipeerConnection extends EventEmitter {
         RCTMultipeerConnectivity.sendToConnectedPeers(data, callback);
     }
 
-    send(recipients, data, callback) {
-        if (!callback) {
-            callback = () => {};
-        }
+    /* Removed in Native library for now. */
+    // send(recipients, data, callback) {
+    //     if (!callback) {
+    //         callback = () => {};
+    //     }
 
-        var recipientIds = recipients.map(recipient => {
-            if (recipient instanceof Peer) {
-                console.log('recipient is a peer');
-                return recipient.id;
-            }
-            console.log('recipient is not a peer');
-            return recipient;
-        });
-        console.log('sending data', data, 'to', recipientIds);
-        RCTMultipeerConnectivity.send(recipientIds, data, callback);
-    }
-
-    broadcast(data, callback) {
-        if (!callback) {
-            callback = () => {};
-        }
-        RCTMultipeerConnectivity.broadcast(data, callback);
+    //     var recipientIds = recipients.map(recipient => {
+    //         if (recipient instanceof Peer) {
+    //             console.log('recipient is a peer');
+    //             return recipient.id;
+    //         }
+    //         console.log('recipient is not a peer');
+    //         return recipient;
+    //     });
+    //     console.log('sending data', data, 'to', recipientIds);
+    //     RCTMultipeerConnectivity.send(recipientIds, data, callback);
     }
 
     invite(peerId, callback) {
-        console.log('MultipeerConnection.js: inviting peer: ',  peerId)
         if (!callback) {
             callback = () => {};
         }
@@ -161,21 +154,21 @@ export default class MultipeerConnection extends EventEmitter {
         RCTMultipeerConnectivity.stopBrowsing();
     }
 
-    disconnect(callback) {
+    disconnectFromAll(callback) {
         if (!callback) {
             callback = () => {};
         }
-        RCTMultipeerConnectivity.disconnect(callback);
+        RCTMultipeerConnectivity.disconnectFromAll(callback);
     }
 
-    logSessionInfo() {
-        RCTMultipeerConnectivity.logSessionInfo();
+    disconnectFromPeer(peerId, callback) {
+        if (!callback) {
+            callback = () => {};
+        }
+        RCTMultipeerConnectivity.disconnectFromPeer(peerId, callback);
     }
 
-    //  createStreamForPeer(peerId, name, callback) {
-    //    if (!callback) {
-    //      callback = () => {};
-    //    }
-    //    RCTMultipeerConnectivity.createStreamForPeer(peerId, name, callback);
-    //  }
+    // logSessionInfo() {
+    //     RCTMultipeerConnectivity.logSessionInfo();
+    // }
 }
