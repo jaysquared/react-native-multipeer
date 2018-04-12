@@ -1,6 +1,7 @@
 import { DeviceEventEmitter, NativeModules } from 'react-native';
 import { EventEmitter } from 'events';
 import Peer from './Peer';
+
 const RCTMultipeerConnectivity = NativeModules.MultipeerConnectivity;
 
 export default class MultipeerConnection extends EventEmitter {
