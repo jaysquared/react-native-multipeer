@@ -14,6 +14,7 @@ RCT_EXPORT_METHOD(advertise:(NSString *)channel data:(NSDictionary *)data) {
   [[MCNearbyServiceAdvertiser alloc] initWithPeer:self.peerID discoveryInfo:data serviceType:channel];
   self.advertiser.delegate = self;
   [self.advertiser startAdvertisingPeer];
+  NSLog(@"STARTING ADVERTISING: My Advertiser: %@", self.advertiser);
 }
 
 RCT_EXPORT_METHOD(stopAdvertising)
@@ -28,6 +29,7 @@ RCT_EXPORT_METHOD(browse:(NSString *)channel)
   self.browser = [[MCNearbyServiceBrowser alloc] initWithPeer:self.peerID serviceType:channel];
   self.browser.delegate = self;
   [self.browser startBrowsingForPeers];
+  NSLog(@"STARTING BROWSING: My Browser: %@", self.browser);
 }
 
 RCT_EXPORT_METHOD(stopBrowsing)
@@ -35,25 +37,41 @@ RCT_EXPORT_METHOD(stopBrowsing)
     self.browser.delegate = nil;
     [self.browser stopBrowsingForPeers];
     self.browser = nil;
+    
+}
+
+RCT_EXPORT_METHOD(logSessionInfo)
+{
+    NSLog(@"Session Info:%@", self.session);
 }
 
 RCT_EXPORT_METHOD(invite:(NSString *)peerUUID callback:(RCTResponseSenderBlock)callback) {
   MCPeerID *peerID = [self.peers valueForKey:peerUUID];
+  NSLog(@"INVITE: My Browser: %@, My Session: %@", self.browser, self.session);
+  NSLog(@"INVITE: I am %@ inviting %@", self.peerID.displayName, peerUUID);
   [self.browser invitePeer:peerID toSession:self.session withContext:nil timeout:30];
   callback(@[[NSNull null]]);
 }
 
 RCT_EXPORT_METHOD(rsvp:(NSString *)inviteID accept:(BOOL)accept callback:(RCTResponseSenderBlock)callback) {
+  NSLog(@"RSVP: My session: %@", self.session);
+  NSLog(@"RSVP: I am %@", self.peerID.displayName);
   if ([self.invitationHandlers objectForKey:inviteID]) {
+      NSLog(@"RSVP: Invitation Handler Found");
       void (^invitationHandler)(BOOL, MCSession *) = [self.invitationHandlers valueForKey:inviteID];
       invitationHandler(accept, self.session);
       [self.invitationHandlers removeObjectForKey:inviteID];
+      NSLog(@"RSVP: Invitation Handler Should've Executed");
       callback(@[[NSNull null]]);
   }
 }
 
 RCT_EXPORT_METHOD(broadcast:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback) {
   [self sendData:[self.connectedPeers allKeys] data:data callback:callback];
+}
+
+RCT_EXPORT_METHOD(sendToConnectedPeers:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback) {
+    [self sendDataToConnectedPeers:data callback:callback];
 }
 
 RCT_EXPORT_METHOD(send:(NSArray *)recipients data:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback) {
@@ -120,11 +138,27 @@ RCT_EXPORT_METHOD(disconnect:(RCTResponseSenderBlock)callback) {
     return identity;
 }
 
+
+- (void)sendDataToConnectedPeers:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback {
+    NSError *error = nil;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:data options:0 error:&error];
+    if([self.session.connectedPeers count] > 0)
+    {
+        for (id peer in self.session.connectedPeers) {
+            NSLog(@"sending Data to peer: %@", peer);
+        }
+        [self.session sendData:jsonData toPeers:self.session.connectedPeers withMode:MCSessionSendDataReliable error:&error];
+        //if (error == nil) {
+        callback(@[[NSNull null]]);
+    }
+}
+
 - (void)sendData:(NSArray *)recipients data:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback {
   NSError *error = nil;
   NSMutableArray *peers = [NSMutableArray array];
   for (NSString *peerUUID in recipients) {
-    [peers addObject:[self.peers valueForKey:peerUUID]];
+//      if(peerUUID != nil)
+      [peers addObject:[self.peers valueForKey:peerUUID]];
   }
   NSData *jsonData = [NSJSONSerialization dataWithJSONObject:data options:0 error:&error];
   [self.session sendData:jsonData toPeers:peers withMode:MCSessionSendDataReliable error:&error];
@@ -138,7 +172,13 @@ RCT_EXPORT_METHOD(disconnect:(RCTResponseSenderBlock)callback) {
 
 - (void)browser:(MCNearbyServiceBrowser *)browser foundPeer:(MCPeerID *)peerID withDiscoveryInfo:(NSDictionary *)info {
   if ([peerID.displayName isEqualToString:self.peerID.displayName]) return;
+    
+    if ([self.session.connectedPeers count]<kMCSessionMaximumNumberOfPeers)
+        NSLog(@"");
   [self.peers setValue:peerID forKey:peerID.displayName];
+    
+    NSLog(@"FOUND PEER: %@", peerID.displayName);
+
   if (info == nil) {
     info = [NSDictionary dictionary];
   }
@@ -153,6 +193,7 @@ RCT_EXPORT_METHOD(disconnect:(RCTResponseSenderBlock)callback) {
 
 - (void)browser:(MCNearbyServiceBrowser *)browser lostPeer:(MCPeerID *)peerID {
   if ([peerID.displayName isEqualToString:self.peerID.displayName]) return;
+  NSLog(@"Removing peer: %@", peerID);
   [self.bridge.eventDispatcher sendDeviceEventWithName:@"RCTMultipeerConnectivityPeerLost"
                                body:@{
                                  @"peer": @{
@@ -163,6 +204,9 @@ RCT_EXPORT_METHOD(disconnect:(RCTResponseSenderBlock)callback) {
 }
 
 - (void)advertiser:(MCNearbyServiceAdvertiser *)advertiser didReceiveInvitationFromPeer:(MCPeerID *)peerID withContext:(NSData *)context invitationHandler:(void (^)(BOOL accept, MCSession *session))invitationHandler {
+  NSLog(@"INVITE: Advertiser Session: %@", self.session);
+  NSLog(@"INVITE: I am %@, and received an invite from %@", self.peerID.displayName, peerID.displayName);
+  NSLog(@"INVITE: My advertiser: %@", self.advertiser);
   NSString *invitationUUID = [[NSUUID UUID] UUIDString];
   [self.invitationHandlers setValue:[invitationHandler copy] forKey:invitationUUID];
   [self.bridge.eventDispatcher sendDeviceEventWithName:@"RCTMultipeerConnectivityInviteReceived"
@@ -177,6 +221,10 @@ RCT_EXPORT_METHOD(disconnect:(RCTResponseSenderBlock)callback) {
 }
 
 - (void)session:(MCSession *)session peer:(MCPeerID *)peerID didChangeState:(MCSessionState)state {
+  NSLog(@"SESSION CHANGE STATE: My session: %@", self.session);
+  NSLog(@"SESSION CHANGE STATE: Session Changing state: %@", session);
+  NSLog(@"SESSION CHANGE STATE: My connected peers: %@", self.connectedPeers);
+  NSLog(@"SESSION CHANGE STATE: This peer sent me change state: %@", peerID.displayName);
   if ([peerID.displayName isEqualToString:self.peerID.displayName]) return;
   if (state == MCSessionStateConnected) {
     [self.connectedPeers setValue:peerID forKey:peerID.displayName];
@@ -208,6 +256,7 @@ RCT_EXPORT_METHOD(disconnect:(RCTResponseSenderBlock)callback) {
 }
 - (void)session:(MCSession *)session didReceiveCertificate:(NSArray *)certificate fromPeer:     (MCPeerID *)peerID certificateHandler:(void (^)(BOOL accept))certificateHandler
 {
+    NSLog(@"Checking Cert!");
     SecCertificateRef myCert;
     myCert = (__bridge SecCertificateRef)[certificate objectAtIndex:0];    // 1
 
@@ -235,6 +284,7 @@ RCT_EXPORT_METHOD(disconnect:(RCTResponseSenderBlock)callback) {
     //...
     if (trustResult == kSecTrustResultConfirm || trustResult == kSecTrustResultProceed || trustResult == kSecTrustResultUnspecified)                           // 5
     {
+        NSLog(@"Cert is good!");
         certificateHandler(YES);
     }
 
