@@ -122,7 +122,7 @@ export default class MultipeerConnection extends EventEmitter {
     //     });
     //     console.log('sending data', data, 'to', recipientIds);
     //     RCTMultipeerConnectivity.send(recipientIds, data, callback);
-    }
+    //}
 
     invite(peerId, callback) {
         if (!callback) {
