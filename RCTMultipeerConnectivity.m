@@ -121,6 +121,7 @@ RCT_EXPORT_METHOD(disconnectFromAll:(RCTResponseSenderBlock)callback) {
 }
 
 - (void)sendDataToConnectedPeers:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback {
+    NSMutableArray *peersSent = [[NSMutableArray alloc] init];
     NSError *error = nil;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:data options:0 error:&error];
     for (NSString *peerUUID in self.peerSessions) {
@@ -129,10 +130,10 @@ RCT_EXPORT_METHOD(disconnectFromAll:(RCTResponseSenderBlock)callback) {
         {
             NSLog(@"sending Data to peer: %@", peerUUID);
             [session sendData:jsonData toPeers:session.connectedPeers withMode:MCSessionSendDataReliable error:&error];
-            
+            [peersSent addObject:peerUUID];
         }
     }
-    callback(@[[NSNull null]]);
+    callback(@[peersSent]);
 }
 
 //- (void)sendData:(NSArray *)recipients data:(NSDictionary *)data callback:(RCTResponseSenderBlock)callback {
