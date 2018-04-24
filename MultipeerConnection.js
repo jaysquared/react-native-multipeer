@@ -98,6 +98,11 @@ export default class MultipeerConnection extends EventEmitter {
         return this._connectedPeers;
     }
 
+    getPeerName(peerId)
+    {
+        return this._peers[peerId].name;
+    }
+
     sendToConnectedPeers(data, callback) {
         if (!callback) {
             callback = () => {};
