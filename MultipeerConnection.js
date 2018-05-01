@@ -14,7 +14,7 @@ export default class MultipeerConnection extends EventEmitter {
             (event => {
                 var peer = new Peer(event.peer.id, event.peer.info.name);
                 this._peers[peer.id] = peer;
-                console.log('peerFound', event);
+                // console.log('peerFound', event);
                 this.emit('peerFound', { peer });
             }).bind(this)
         );
@@ -26,7 +26,7 @@ export default class MultipeerConnection extends EventEmitter {
                 delete this._peers[event.peer.id];
                 delete this._connectedPeers[event.peer.id];
                 peer.emit('lost');
-                console.log('peerLost', event);
+                // console.log('peerLost', event);
                 this.emit('peerLost', { peer: { id: peer.id } });
             }).bind(this)
         );
@@ -37,7 +37,7 @@ export default class MultipeerConnection extends EventEmitter {
                 this._peers[event.peer.id] &&
                 this._peers[event.peer.id].emit('connected');
                 this._connectedPeers[event.peer.id] = this._peers[event.peer.id];
-                console.log('peerConnected', event);
+                // console.log('peerConnected', event);
                 this.emit('peerConnected', event);
             }).bind(this)
         );
@@ -47,7 +47,7 @@ export default class MultipeerConnection extends EventEmitter {
             (event => {
                 this._peers[event.peer.id] &&
                 this._peers[event.peer.id].emit('connecting');
-                console.log('peerConnecting', event);
+                // console.log('peerConnecting', event);
                 this.emit('peerConnecting', event);
             }).bind(this)
         );
@@ -58,7 +58,7 @@ export default class MultipeerConnection extends EventEmitter {
                 this._peers[event.peer.id] &&
                 this._peers[event.peer.id].emit('disconnected');
                 delete this._connectedPeers[event.peer.id];
-                console.log('peerDisconnected', event)
+                // console.log('peerDisconnected', event)
                 this.emit('peerDisconnected', event);
             }).bind(this)
         );
@@ -73,7 +73,7 @@ export default class MultipeerConnection extends EventEmitter {
         var invited = DeviceEventEmitter.addListener(
             'RCTMultipeerConnectivityInviteReceived',
             (event => {
-                console.log("In JS API with an invite from:", event.peer.id);
+                // console.log("In JS API with an invite from:", event.peer.id);
                 event.sender = this._peers[event.peer.id];
                 this.emit('invite', event);
             }).bind(this)
@@ -140,7 +140,7 @@ export default class MultipeerConnection extends EventEmitter {
         if (!callback) {
             callback = () => {};
         }
-        console.log("In JS API RSVP");
+        // console.log("In JS API RSVP");
         RCTMultipeerConnectivity.rsvp(inviteId, accept, callback);
     }
 
