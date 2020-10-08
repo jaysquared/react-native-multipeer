@@ -304,4 +304,11 @@ RCT_EXPORT_METHOD(disconnectFromAll:(RCTResponseSenderBlock)callback) {
                                                            }];
 }
 
+- (void)browser:(MCNearbyServiceBrowser *)browser didNotStartBrowsingForPeers:(NSError *)error {
+    [self.bridge.eventDispatcher sendDeviceEventWithName:@"RCTMultipeerConnectivityDidNotStartBrowsingForPeers"
+                                                    body:@{
+                                                           @"error": error,
+                                                           }];
+}
+
 @end
