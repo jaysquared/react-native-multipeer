@@ -35,7 +35,7 @@ export default class MultipeerConnection extends EventEmitter {
             'RCTMultipeerConnectivityPeerConnected',
             (event => {
                 this._peers[event.peer.id] &&
-                this._peers[event.peer.id].emit('connected');
+                    this._peers[event.peer.id].emit('connected');
                 this._connectedPeers[event.peer.id] = this._peers[event.peer.id];
                 // console.log('peerConnected', event);
                 this.emit('peerConnected', event);
@@ -46,7 +46,7 @@ export default class MultipeerConnection extends EventEmitter {
             'RCTMultipeerConnectivityPeerConnecting',
             (event => {
                 this._peers[event.peer.id] &&
-                this._peers[event.peer.id].emit('connecting');
+                    this._peers[event.peer.id].emit('connecting');
                 // console.log('peerConnecting', event);
                 this.emit('peerConnecting', event);
             }).bind(this)
@@ -56,7 +56,7 @@ export default class MultipeerConnection extends EventEmitter {
             'RCTMultipeerConnectivityPeerDisconnected',
             (event => {
                 this._peers[event.peer.id] &&
-                this._peers[event.peer.id].emit('disconnected');
+                    this._peers[event.peer.id].emit('disconnected');
                 delete this._connectedPeers[event.peer.id];
                 // console.log('peerDisconnected', event)
                 this.emit('peerDisconnected', event);
@@ -88,13 +88,17 @@ export default class MultipeerConnection extends EventEmitter {
                 this.emit('data', event);
             }).bind(this)
         );
-        
+
         var didNotStartBrowsingForPeers = DeviceEventEmitter.addListener(
             'RCTMultipeerConnectivityDidNotStartBrowsingForPeers',
             (event => {
                 this.emit('didNotStartBrowsingForPeers', event);
             }).bind(this)
         );
+    }
+
+    async getPeerID() {
+        return RCTMultipeerConnectivity.getPeerID();
     }
 
     getAllPeers() {
@@ -105,14 +109,13 @@ export default class MultipeerConnection extends EventEmitter {
         return this._connectedPeers;
     }
 
-    getPeerName(peerId)
-    {
+    getPeerName(peerId) {
         return this._peers[peerId].name;
     }
 
     sendToConnectedPeers(data, callback) {
         if (!callback) {
-            callback = () => {};
+            callback = () => { };
         }
 
         RCTMultipeerConnectivity.sendToConnectedPeers(data, callback);
@@ -138,14 +141,14 @@ export default class MultipeerConnection extends EventEmitter {
 
     invite(peerId, callback) {
         if (!callback) {
-            callback = () => {};
+            callback = () => { };
         }
         RCTMultipeerConnectivity.invite(peerId, callback);
     }
 
     rsvp(inviteId, accept, callback) {
         if (!callback) {
-            callback = () => {};
+            callback = () => { };
         }
         // console.log("In JS API RSVP");
         RCTMultipeerConnectivity.rsvp(inviteId, accept, callback);
@@ -169,14 +172,14 @@ export default class MultipeerConnection extends EventEmitter {
 
     disconnectFromAll(callback) {
         if (!callback) {
-            callback = () => {};
+            callback = () => { };
         }
         RCTMultipeerConnectivity.disconnectFromAll(callback);
     }
 
     disconnectFromPeer(peerId, callback) {
         if (!callback) {
-            callback = () => {};
+            callback = () => { };
         }
         RCTMultipeerConnectivity.disconnectFromPeer(peerId, callback);
     }

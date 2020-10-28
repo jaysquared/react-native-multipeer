@@ -8,6 +8,12 @@
 
 RCT_EXPORT_MODULE()
 
+RCT_REMAP_METHOD(getPeerID, resolver: (RCTPromiseResolveBlock)resolve
+     rejecter:(RCTPromiseRejectBlock)reject){
+    resolve(self.peerID.displayName);
+}
+
+
 RCT_EXPORT_METHOD(advertise:(NSString *)channel data:(NSDictionary *)data) {
     self.advertiser =
     [[MCNearbyServiceAdvertiser alloc] initWithPeer:self.peerID discoveryInfo:data serviceType:channel];
@@ -80,6 +86,7 @@ RCT_EXPORT_METHOD(disconnectFromAll:(RCTResponseSenderBlock)callback) {
     }
     callback(@[[NSNull null]]);
 }
+
 
 - (instancetype)init {
     self = [super init];
