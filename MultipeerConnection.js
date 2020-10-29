@@ -95,6 +95,13 @@ export default class MultipeerConnection extends EventEmitter {
                 this.emit('didNotStartBrowsingForPeers', event);
             }).bind(this)
         );
+
+        var didNotStartAdvertisingPeer = DeviceEventEmitter.addListener(
+            'RCTMultipeerConnectivityDidNotStartAdvertisingPeer',
+            (event => {
+                this.emit('didNotStartAdvertisingPeer', event);
+            }).bind(this)
+        );
     }
 
     async getPeerID() {

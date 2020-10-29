@@ -318,4 +318,12 @@ RCT_EXPORT_METHOD(disconnectFromAll:(RCTResponseSenderBlock)callback) {
                                                            }];
 }
 
+-(void)advertiser:(MCNearbyServiceAdvertiser*)advertiser didNotStartAdvertisingPeer:(NSError *)error {
+    [self.bridge.eventDispatcher sendDeviceEventWithName:@"RCTMultipeerConnectivityDidNotStartAdvertisingPeer"
+                                                    body:@{
+                                                           @"error": error,
+                                                           }];
+}
+
+
 @end
