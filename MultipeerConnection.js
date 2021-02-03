@@ -160,6 +160,10 @@ export default class MultipeerConnection extends EventEmitter {
         // console.log("In JS API RSVP");
         RCTMultipeerConnectivity.rsvp(inviteId, accept, callback);
     }
+    
+    setPeerID(peerId) {
+        RCTMultipeerConnectivity.setPeerId(peerId);
+    }
 
     advertise(channel, info) {
         RCTMultipeerConnectivity.advertise(channel, info);
