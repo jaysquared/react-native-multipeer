@@ -6,6 +6,11 @@
 
 @synthesize bridge = _bridge;
 
++ (BOOL)requiresMainQueueSetup
+{
+    return YES;
+}
+
 RCT_EXPORT_MODULE()
 
 RCT_REMAP_METHOD(getPeerID, resolver: (RCTPromiseResolveBlock)resolve
@@ -87,6 +92,9 @@ RCT_EXPORT_METHOD(disconnectFromAll:(RCTResponseSenderBlock)callback) {
     callback(@[[NSNull null]]);
 }
 
+RCT_EXPORT_METHOD(setPeerId:(NSString *)peerId) {
+    self.peerID = [[MCPeerID alloc] initWithDisplayName:peerId];
+}
 
 - (instancetype)init {
     self = [super init];
