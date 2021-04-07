@@ -25,7 +25,9 @@ export default class MultipeerConnection extends EventEmitter {
                 var peer = this._peers[event.peer.id];
                 delete this._peers[event.peer.id];
                 delete this._connectedPeers[event.peer.id];
-                peer.emit('lost');
+                if (peer) {
+                    peer.emit('lost');
+                }
                 // console.log('peerLost', event);
                 this.emit('peerLost', { peer: { id: peer.id } });
             }).bind(this)
